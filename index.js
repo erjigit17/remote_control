@@ -1,5 +1,5 @@
 import Jimp from 'jimp';
-import {httpServer} from './src/http_server/index.js';
+import {httpServer} from './src/http_server/index.js'
 import robot from 'robotjs';
 import { WebSocketServer } from 'ws';
 
@@ -17,6 +17,11 @@ const mouse_position = {
   _x: 0,
   _y: 0,
 
+  initX: 0,
+  initY: 0,
+
+  moveFirstTime: true,
+
   get x() {
     return this._x
   },
@@ -30,7 +35,6 @@ const mouse_position = {
   set y(newValue) {
     if (newValue >= 0 && newValue <= screenSize.height) this._y = newValue;
   }
-
 }
 const directions = [
   'mouse_up',
@@ -73,17 +77,27 @@ wws.on('connection', (ws) => {
 function drawFigure(figure, widthOrRadius, length){
 
   if(figure === 'draw_square') {
+    robot.mouseClick()
+    robot.mouseToggle("down")
     mouseRight(widthOrRadius)
     mouseDown(widthOrRadius)
     mouseLeft(widthOrRadius)
     mouseUp(widthOrRadius)
+    robot.mouseToggle("up")
+
+    reactivateBrowser()
   }
 
   if(figure === 'draw_rectangle') {
+    robot.mouseClick()
+    robot.mouseToggle("down")
     mouseRight(widthOrRadius)
     mouseDown(length)
     mouseLeft(widthOrRadius)
     mouseUp(length)
+    robot.mouseToggle("up")
+
+    reactivateBrowser()
   }
 
   if(figure === 'draw_circle') drawCircle(widthOrRadius)
@@ -92,10 +106,22 @@ function drawFigure(figure, widthOrRadius, length){
 
 function setMousePosition(direction, px, ws){
   const position = new Map()
+
   position.set('mouse_right', px => mouse_position.x += px)
   position.set('mouse_left',  px => mouse_position.x -= px)
   position.set('mouse_up',    px => mouse_position.y -= px)
   position.set('mouse_down',  px => mouse_position.y += px)
+
+  if (mouse_position.moveFirstTime){
+    const mousePosition = robot.getMousePos()
+    const {x, y} = mousePosition
+    mouse_position.x = x
+    mouse_position.y = y
+    mouse_position.initX = x
+    mouse_position.initY = y
+
+    mouse_position.moveFirstTime = false
+  }
 
   position.get(direction)(px)
   ws.send(`mouse_position ${mouse_position.x},${mouse_position.y}`)
@@ -108,12 +134,31 @@ function drawCircle(radius) {
   const centerY = mouse_position.y + radius
   const steps = 300
 
+  let clickOnce = true
+
   for (let i = 0; i <= steps; i++) {
     const radians = (2 * Math.PI * i / steps) - Math.PI / 2
     const x = centerX + radius * Math.cos(radians)
     const y = centerY + radius * Math.sin(radians)
     robot.moveMouse(x, y)
+    if (clickOnce) {
+      robot.mouseClick()
+      robot.mouseToggle("down")
+      clickOnce = false
+    }
   }
+  robot.mouseToggle("up")
+  reactivateBrowser()
+}
+
+function reactivateBrowser(){
+  const {x, y, initX, initY} = mouse_position
+  robot.moveMouse(initX, initY)
+  robot.mouseClick()
+  robot.moveMouse(x, y)
+
+
+
 }
 
 function mouseRight(px) {
@@ -157,17 +202,22 @@ function mouseDown(px) {
 }
 
 
-function printScreen(ws){
-  const size = 100
-
+function printScreen(ws) {
+  const size = 200
   const mousePosition = robot.getMousePos()
   const {x, y} = mousePosition
 
-  const buffer = robot.screen.capture(x, y, size, size).image
+  let image = robot.screen.capture(x, y, size, size);
+  for (let i = 0; i < image.image.length; i++) {
+    if (i % 4 === 0) {
+      [image.image[i], image.image[i + 2]] = [image.image[i + 2], image.image[i]] // bgr -> rgb color
+    }
+  }
 
-  new Jimp({ data: buffer, width: 200, height: 200 }, async (err, jimp) => {
-    const _Base64 = await jimp.getBase64Async(Jimp.MIME_PNG)
-    const Base64 = _Base64.split(',').at(-1) //slice "data:image/png;base64"
+  const jimg = new Jimp(image.width, image.height)
+  jimg.bitmap.data = image.image
+  jimg.getBase64(Jimp.MIME_PNG, (err, result) => {
+    const Base64 = result.split(',').at(-1) //slice "data:image/png;base64"
     ws.send(`prnt_scrn ${Base64}`)
-  })
+  });
 }
