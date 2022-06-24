@@ -1,13 +1,25 @@
 # remote_control
-glasier exit
+try catch
+lint 
 
-send actions to front
+\0
 
-stream
+duplex.write('mouse_position 444,333\0', (e) => {
+if (e) {
+console.log(e);
+}
 
-test
+Первый вариант. При ложение должно показатю (что то наподобие логов)
+
+какая команда была получена и результат выполнения (ошибка или успешно)
+
+prettier eslint
 
 Instruction
 
+test
+
 ##Instruction:
 https://jspaint.app/
+
+.env.example

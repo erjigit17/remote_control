@@ -1,13 +1,15 @@
 import {mouse_position} from "./mousePositoin";
 import {directions} from '../constants'
+import {IRobot} from '../interfaceses'
 
-export function setMousePosition(direction, px, robot) {
+
+export function setMousePosition(direction: string, px: number, robot: IRobot) {
     const position = new Map()
 
-    position.set(directions.right, px => mouse_position.x += px)
-    position.set(directions.left,  px => mouse_position.x -= px)
-    position.set(directions.up,    px => mouse_position.y -= px)
-    position.set(directions.down,  px => mouse_position.y += px)
+    position.set(directions.right, (px: number) => mouse_position.x += px)
+    position.set(directions.left,  (px: number)  => mouse_position.x -= px)
+    position.set(directions.up,    (px: number)  => mouse_position.y -= px)
+    position.set(directions.down,  (px: number)  => mouse_position.y += px)
 
     if (mouse_position.moveFirstTime){
         const mousePosition = robot.getMousePos()

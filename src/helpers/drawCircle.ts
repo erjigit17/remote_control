@@ -1,7 +1,9 @@
 import {mouse_position} from "./mousePositoin";
-import {reactivateBrowser} from "./reactivateBrowser"
+import {reactivateBrowser} from "./reactivateBrowser";
+import {IRobot} from '../interfaceses'
 
-export function drawCircle(radius, robot) {
+
+export function drawCircle(radius: number, robot: IRobot) {
     const centerX = mouse_position.x + radius
     const centerY = mouse_position.y + radius
     const steps = 500
