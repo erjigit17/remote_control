@@ -1,15 +1,13 @@
 # remote_control
-initial pos
+glasier exit
 
-js -> ts
-
-split to modules
+send actions to front
 
 stream
 
-edge cases
-
 test
+
+Instruction
 
 ##Instruction:
 https://jspaint.app/
