@@ -1,26 +1,24 @@
-import {httpServer} from './http_server'
 import robot from 'robotjs';
 import { WebSocketServer } from 'ws';
-
+import {httpServer} from './http_server';
+import settings from "./settings";
 import {
   drawSquare,
   drawRectangle,
   drawCircle,
   printScreen,
-  setMousePosition
+  setMousePosition,
+  mouse_position
 } from './helpers'
-
 import {directions, figures} from './constants'
 
-const HTTP_PORT = 3000;
-const WS_PORT = 8080;
 
-console.log(`Start static http server on the ${HTTP_PORT} port!`);
-httpServer.listen(HTTP_PORT);
+console.log(`Start static http server on the ${settings.httpPort} port!`);
+httpServer.listen(settings.httpPort);
 
 robot.setMouseDelay(5)
 
-const wws = new WebSocketServer({port: WS_PORT});
+const wws = new WebSocketServer({port: settings.wsPort});
 
 
 wws.on('connection', (ws) => {
@@ -35,15 +33,21 @@ wws.on('connection', (ws) => {
 
     if (Object.values(directions).includes(cmd)) {
       const px = Number(_px)
-      setMousePosition(cmd, px, ws, robot)
+      setMousePosition(cmd, px, robot)
+      ws.send(cmd)
 
     } else if (Object.values(figures).includes(cmd)) {
       const widthOrRadius = Number(_px)
       const height = Number(_height) || null
       drawFigure(cmd, widthOrRadius, height, robot)
+      ws.send(cmd)
 
     } else if (cmd === 'prnt_scrn') {
       printScreen(ws, robot)
+
+    } else if (cmd === 'mouse_position') {
+      const {x, y} = mouse_position
+      ws.send(`mouse_position ${x},${y}`)
     }
   })
 
@@ -65,3 +69,5 @@ function drawFigure(figure, widthOrRadius, length, robot){
           break
   }
 }
+
+

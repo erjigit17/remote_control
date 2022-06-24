@@ -1,7 +1,7 @@
 import {mouse_position} from "./mousePositoin";
 import {directions} from '../constants'
 
-export function setMousePosition(direction, px, ws, robot) {
+export function setMousePosition(direction, px, robot) {
     const position = new Map()
 
     position.set(directions.right, px => mouse_position.x += px)
@@ -21,6 +21,5 @@ export function setMousePosition(direction, px, ws, robot) {
     }
 
     position.get(direction)(px)
-    ws.send(`mouse_position ${mouse_position.x},${mouse_position.y}`)
     robot.moveMouse(mouse_position.x, mouse_position.y)
 }

@@ -5,7 +5,7 @@
     "main": "src/index.ts",
     "scripts": {
         "start": "tsc && node dist/index.js",
-        "start:dev": "nodemon --exec npx ts-node-esm src/index.ts",
+        "start:dev": "nodemon --exec ts-node src/index.ts",
         "kill": "kill -9 $(lsof -ti:3000)"
     },
     "author": "Andrei Auchynnikau",
@@ -19,7 +19,11 @@
         "ts-node": "^10.8.1"
     },
     "dependencies": {
+        "cross-env": "^7.0.3",
+        "dotenv": "^16.0.1",
+        "eslint": "^8.18.0",
         "jimp": "^0.16.1",
+        "prettier": "^2.7.1",
         "robotjs": "^0.6.0",
         "typescript": "^4.7.4",
         "ws": "^8.8.0"
