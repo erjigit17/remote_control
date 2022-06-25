@@ -30,27 +30,41 @@ wws.on('connection', ws => {
   duplex.on('data', async (chunk) => {
 
     const [cmd, _px, _height] = chunk.toString().split(' ')
-
+    const {x, y} = mouse_position
     console.log(`[Server] received command: ${cmd}`)
 
     if (Object.values(directions).includes(cmd)) {
       const px = Number(_px)
       setMousePosition(cmd, px, robot)
       duplex.write(cmd)
+      console.log(`[Server] current mouse_position ${x}, ${y}`)
 
     } else if (Object.values(figures).includes(cmd)) {
       const widthOrRadius = Number(_px)
       const height = Number(_height) || null
       drawFigure(cmd, widthOrRadius, height, robot)
       duplex.write(cmd)
+      console.log(`[Server] result: ${cmd} successfully finished`)
 
     } else if (cmd === 'prnt_scrn') {
       const base64 = await printScreen(robot)
-      duplex.write(`prnt_scrn ${base64}`)
+      duplex.write(`prnt_scrn ${base64}\0`, err => {
+        if (err) {
+          console.log(`[Server] something getting wrong ${err}`);
+        } else {
+          console.log(`[Server] result: sending screenshot successfully finished`);
+        }
+      })
+      console.log(`[Server] ${cmd} successfully finished`)
 
     } else if (cmd === 'mouse_position') {
-      const {x, y} = mouse_position
-      duplex.write(`mouse_position ${x},${y}`)
+      duplex.write(`mouse_position ${x},${y}\0`, err => {
+        if (err) {
+          console.log(`[Server] something getting wrong ${err}`);
+        } else {
+          console.log(`[Server] result: current mouse_position ${x}, ${y}`);
+        }
+      })
     }
   })
 
